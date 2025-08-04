@@ -26,10 +26,9 @@ pub fn run_day5() -> io::Result<()> {
             .map(str::trim)
             .map(|p| p.parse().expect("parse error"))
             .collect::<Vec<i32>>();
-        println!("update: {:?}", update);
+
         if validate_update(&rules, &update) {
             let med = update.len() / 2;
-            println!("med: {}", update[med]);
             sum += update[med];
         }
     }
@@ -56,18 +55,17 @@ fn parse_pair(str: &str) -> (i32, i32) {
 
 fn validate_update(rules: &[(i32, i32)], update: &[i32]) -> bool {
     for (page1, page2) in rules {
-        if let Some(page1_position) = update
-            .iter()
-            .position(|page| page == page1) {
+        if let Some(page1_position) = update.iter().position(|page| page == page1) {
             let page2_position = update
                 .iter()
                 .position(|page| page == page2)
                 .map(|i| i as isize)
                 .unwrap_or(-1);
 
-            if page2_position == -1 { continue; };
+            if page2_position == -1 {
+                continue;
+            };
             if page1_position as isize > page2_position {
-                println!("== falsy ==");
                 return false;
             }
         }
