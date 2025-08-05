@@ -1,12 +1,11 @@
 use std::cmp::Ordering;
 use std::fs::File;
-use std::io;
-use std::io::BufRead;
+use std::io::{BufRead, BufReader, Result};
 
-pub fn run_day5() -> io::Result<()> {
+pub fn run_day5() -> Result<()> {
     let path = "input/2024_05.txt";
     let file = File::open(path)?;
-    let reader = io::BufReader::new(file);
+    let reader = BufReader::new(file);
     let mut lines = reader.lines();
 
     let mut rules: Vec<(i32, i32)> = vec![];
@@ -33,14 +32,18 @@ pub fn run_day5() -> io::Result<()> {
             let med = update.len() / 2;
             correct_sum += update[med];
         } else {
+            // part 2
             let corrected_update = correct_update(&rules, &update);
             let med = corrected_update.len() / 2;
-            fixed_incorrect_sum  += corrected_update[med];
+            fixed_incorrect_sum += corrected_update[med];
         }
     }
 
-    println!("Sum of middle page numbers {}", correct_sum);
-    println!("Fixed incorrect sum of middle page numbers {}", fixed_incorrect_sum);
+    println!("Sum of middle page numbers: {}", correct_sum);
+    println!(
+        "Sum of middle page numbers of fixed incorrect updates: {}",
+        fixed_incorrect_sum
+    );
     Ok(())
 }
 
@@ -88,7 +91,9 @@ fn correct_update(rules: &[(i32, i32)], update: &[i32]) -> Vec<i32> {
             if a == page1 && b == page2 {
                 return Ordering::Less;
             }
-            if a == page2 && b == page1 { return Ordering::Greater; }
+            if a == page2 && b == page1 {
+                return Ordering::Greater;
+            }
         }
         Ordering::Less
     });

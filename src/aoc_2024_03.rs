@@ -1,56 +1,48 @@
-use std::fs::File;
-use std::io;
-use std::io::{BufRead, Seek};
 use regex::Regex;
+use std::fs::File;
+use std::io::{BufRead, BufReader, Result, Seek, SeekFrom};
 
-pub fn run_day3() -> io::Result<()> {
+pub fn run_day3() -> Result<()> {
     let path = "input/2024_03.txt";
     let mut file = File::open(path)?;
-    run_part1(&mut file)?;
+    let sum_of_multiplies = get_sum_of_multiplies(&mut file)?;
+    println!("Sum of multiplies: {}", sum_of_multiplies);
 
-    file.seek(io::SeekFrom::Start(0))?;
+    file.seek(SeekFrom::Start(0))?;
 
-    run_part2(&mut file)?;
+    let sum_of_active_multiplies = get_sum_of_active_multiplies(&mut file)?;
+    println!("Sum of active multiplies: {}", sum_of_active_multiplies);
 
     Ok(())
 }
 
-fn run_part1(file: &mut File) -> io::Result<()> {
-    let reader = io::BufReader::new(file);
-    let re = Regex::new(r"mul\((\d+),(\d+)\)").unwrap();
+fn get_sum_of_multiplies(file: &mut File) -> Result<i32> {
+    let reader = BufReader::new(file);
 
     let mut result = 0;
 
     for line in reader.lines() {
         let line = line?;
-        for captures in re.captures_iter(line.as_str()) {
-            let digit1 = captures.get(1).unwrap().as_str().parse::<i32>().unwrap();
-            let digit2 = captures.get(2).unwrap().as_str().parse::<i32>().unwrap();
-
-            result += digit1 * digit2;
-        }
+        result += sum_multiplies(&line);
     }
 
-    println!("Sum of multiplies: {}", result);
-    Ok(())
+    Ok(result)
 }
 
-fn run_part2(file: &mut File) -> io::Result<()> {
-    let reader = io::BufReader::new(file);
+fn get_sum_of_active_multiplies(file: &mut File) -> Result<i32> {
+    let reader = BufReader::new(file);
     let control_re = Regex::new(r"do\(\)|don't\(\)").unwrap();
-    let data_re = Regex::new(r"mul\((\d+),(\d+)\)").unwrap();
 
-    let mut regions: Vec<String> = Vec::new();
     let mut active = true;
+    let mut result = 0;
 
     for line_result in reader.lines() {
-        // active = true;
         let line = line_result?;
         let mut last_index = 0;
         for ctrl_match in control_re.find_iter(&line) {
             let segment = &line[last_index..ctrl_match.start()];
             if active {
-                regions.push(segment.to_string());
+                result += sum_multiplies(&segment.to_string());
             }
 
             active = ctrl_match.as_str() == "do()";
@@ -58,21 +50,23 @@ fn run_part2(file: &mut File) -> io::Result<()> {
         }
 
         if active {
-            regions.push(line[last_index..].to_string());
+            result += sum_multiplies(&line[last_index..].to_string());
         }
     }
 
-    let mut result = 0;
+    Ok(result)
+}
 
-    for region in regions {
-        for captures in data_re.captures_iter(&*region) {
-            let digit1 = captures.get(1).unwrap().as_str().parse::<i32>().unwrap();
-            let digit2 = captures.get(2).unwrap().as_str().parse::<i32>().unwrap();
+fn sum_multiplies(str: &String) -> i32 {
+    let mut sum = 0;
+    let re = Regex::new(r"mul\((\d+),(\d+)\)").unwrap();
 
-            result += digit1 * digit2;
-        }
+    for captures in re.captures_iter(str) {
+        let digit1 = captures.get(1).unwrap().as_str().parse::<i32>().unwrap();
+        let digit2 = captures.get(2).unwrap().as_str().parse::<i32>().unwrap();
+
+        sum += digit1 * digit2;
     }
 
-    println!("Sum of active multiplies: {}", result);
-    Ok(())
+    sum
 }
