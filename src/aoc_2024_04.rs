@@ -1,9 +1,8 @@
-use std::fs::File;
-use std::io::{BufRead, BufReader, Result};
-use std::path::Path;
+use crate::util::read_char_matrix;
+use std::io::Result;
 
 pub fn run_day4() -> Result<()> {
-    let content = read_input("input/2024_04.txt")?;
+    let content = read_char_matrix("input/2024_04.txt")?;
 
     let xmas_count = count_xmas_appearing(&content);
     println!("XMAS appears {} time(s)", xmas_count);
@@ -12,16 +11,6 @@ pub fn run_day4() -> Result<()> {
     println!("X-MAS appears {} time(s)", x_mas_count);
 
     Ok(())
-}
-
-fn read_input<P: AsRef<Path>>(path: P) -> Result<Vec<Vec<char>>> {
-    let file = File::open(path)?;
-    let reader = BufReader::new(file);
-
-    reader
-        .lines()
-        .map(|line_result| line_result.map(|line| line.chars().collect::<Vec<char>>()))
-        .collect()
 }
 
 fn count_xmas_appearing(content: &[Vec<char>]) -> usize {

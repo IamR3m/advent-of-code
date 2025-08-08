@@ -1,11 +1,10 @@
-use regex::Regex;
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::{BufRead, BufReader, Result};
 use std::path::Path;
 
 pub fn run_day1() -> Result<()> {
-    let (list1, list2) = read_input("input/2024_01.txt")?;
+    let (list1, list2) = read_input("input/2024_01.txt");
     let distance = get_distance_between_lists(&list1, &list2);
 
     println!("Total distance between lists: {}", distance);
@@ -17,27 +16,20 @@ pub fn run_day1() -> Result<()> {
     Ok(())
 }
 
-fn read_input<P: AsRef<Path>>(path: P) -> Result<(Vec<i32>, Vec<i32>)> {
-    let file = File::open(path)?;
+fn read_input<P: AsRef<Path>>(path: P) -> (Vec<i32>, Vec<i32>) {
+    let file = File::open(path).unwrap();
     let reader = BufReader::new(file);
-    let re = Regex::new(r"\s+").unwrap();
 
-    let mut list1 = vec![];
-    let mut list2 = vec![];
-
-    for line in reader.lines() {
-        let line = line?;
-        let parts: Vec<&str> = re.split(&line).collect();
-        if parts.len() == 2 {
-            if let Ok(n1) = parts[0].trim().parse::<i32>() {
-                list1.push(n1);
-            }
-            if let Ok(n2) = parts[1].trim().parse::<i32>() {
-                list2.push(n2);
-            }
-        }
-    }
-    Ok((list1, list2))
+    reader.lines().map(Result::unwrap)
+        .map(|line| {
+            let line = line.split_once("   ").unwrap();
+            (line.0.to_string(), line.1.to_string())
+        })
+        .fold((vec![], vec![]), |mut acc, x| {
+            acc.0.push(x.0.parse().unwrap());
+            acc.1.push(x.1.parse().unwrap());
+            acc
+        })
 }
 
 // O(n)
@@ -74,4 +66,18 @@ fn get_similarity_score(list1: &[i32], list2: &[i32]) -> i32 {
     }
 
     score
+}
+
+#[test]
+fn correct_part1() {
+    let (list1, list2) = read_input("input/2024_01_test.txt");
+    let distance = get_distance_between_lists(&list1, &list2);
+    assert_eq!(distance, 11);
+}
+
+#[test]
+fn correct_part2() {
+    let (list1, list2) = read_input("input/2024_01_test.txt");
+    let similarity_score = get_similarity_score(&list1, &list2);
+    assert_eq!(similarity_score, 31);
 }

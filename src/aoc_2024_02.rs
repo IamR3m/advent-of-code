@@ -1,10 +1,9 @@
-use regex::Regex;
 use std::fs::File;
 use std::io::{BufRead, BufReader, Result};
 use std::path::Path;
 
-pub fn run_day2() -> Result<()> {
-    let reports = read_input("input/2024_02.txt")?;
+pub fn run_day2() {
+    let reports = read_input("input/2024_02.txt");
     let mut counter = 0;
 
     for report in &reports {
@@ -27,27 +26,15 @@ pub fn run_day2() -> Result<()> {
     }
 
     println!("Safe reports with dampener: {}", counter);
-
-    Ok(())
 }
 
-fn read_input<P: AsRef<Path>>(path: P) -> Result<Vec<Vec<i32>>> {
-    let file = File::open(path)?;
-    let reader = BufReader::new(file);
-    let re = Regex::new(r"\s+").unwrap();
-
-    let mut reports: Vec<Vec<i32>> = Vec::new();
-
-    for line in reader.lines() {
-        let line = line?;
-        let levels: Vec<i32> = re
-            .split(&line)
-            .filter_map(|s| s.trim().parse::<i32>().ok())
-            .collect();
-        reports.push(levels);
-    }
-
-    Ok(reports)
+fn read_input<P: AsRef<Path>>(path: P) -> Vec<Vec<i32>> {
+    let file = File::open(path).unwrap();
+    BufReader::new(file)
+        .lines()
+        .map(Result::unwrap)
+        .map(|s| s.split_whitespace().map(|v| v.parse().unwrap()).collect())
+        .collect()
 }
 
 // Худший сценарий O(n). Присутствует early exit
